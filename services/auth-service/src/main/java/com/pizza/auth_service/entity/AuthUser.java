@@ -2,6 +2,7 @@ package com.pizza.auth_service.entity;
 
 
 import com.pizza.auth_service.enums.Role;
+import com.pizza.auth_service.enums.UserStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -18,11 +19,12 @@ import java.util.UUID;
 public class AuthUser {
 
     @Id
+    @GeneratedValue
     @Column(name = "id", nullable = false, updatable = false)
     private UUID id;
 
     @Column(unique = true, nullable = false)
-    private  String username;
+    private String email;
 
     @Column(nullable = false)
     private String password;
@@ -31,9 +33,15 @@ public class AuthUser {
     @Column(nullable = false)
     private Role role;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String status;
+    private UserStatus status;
 
-    @Column(name = "created_at", nullable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    @PrePersist
+    public void prePersist() {
+        this.createdAt = LocalDateTime.now();
+    }
 }

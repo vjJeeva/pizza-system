@@ -6,32 +6,38 @@ spring:
     gateway:
       discovery:
         locator:
-          enabled: false   # industry style: manual routing preferred
+          enabled: false   # manual routing (good for learning + control)
 
-      # -------------------------------
-      # ROUTES (ENABLE LATER)
-      # -------------------------------
-      # routes:
-      #   - id: order-service
-      #     uri: lb://order-service
-      #     predicates:
-      #       - Path=/api/orders/**
-      #     filters:
-      #       - StripPrefix=2
-      #
-      #   - id: user-service
-      #     uri: lb://user-service
-      #     predicates:
-      #       - Path=/api/users/**
-      #     filters:
-      #       - StripPrefix=2
-      #
-      #   - id: wallet-service
-      #     uri: lb://wallet-service
-      #     predicates:
-      #       - Path=/api/wallet/**
-      #     filters:
-      #       - StripPrefix=2
+      routes:
+        - id: auth-service
+          uri: lb://auth-service
+          predicates:
+            - Path=/auth/**
+          filters:
+            - StripPrefix=1
+
+        # 🔒 Future services (commented for now)
+
+        # - id: order-service
+        #   uri: lb://order-service
+        #   predicates:
+        #     - Path=/api/orders/**
+        #   filters:
+        #     - StripPrefix=2
+
+        # - id: user-service
+        #   uri: lb://user-service
+        #   predicates:
+        #     - Path=/api/users/**
+        #   filters:
+        #     - StripPrefix=2
+
+        # - id: wallet-service
+        #   uri: lb://wallet-service
+        #   predicates:
+        #     - Path=/api/wallet/**
+        #   filters:
+        #     - StripPrefix=2
 
 server:
   port: 8000
