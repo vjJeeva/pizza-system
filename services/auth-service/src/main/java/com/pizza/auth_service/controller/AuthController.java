@@ -17,8 +17,16 @@ public class AuthController {
 
     // 🔹 Register
     @PostMapping("/register")
-    public AuthResponse register(@Valid @RequestBody RegisterRequest request) {
-        return authService.register(request);
+    public Object register(@Valid @RequestBody RegisterRequest request) {
+        try {
+            return authService.register(request);
+        } catch (Exception e) {
+            // This will send the actual Java error message to your Postman screen
+            return java.util.Map.of(
+                    "error", e.getClass().getSimpleName(),
+                    "message", e.getMessage() != null ? e.getMessage() : "Check console for stack trace"
+            );
+        }
     }
 
     // 🔹 Login

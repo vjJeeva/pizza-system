@@ -4,40 +4,27 @@ spring:
 
   cloud:
     gateway:
-      discovery:
-        locator:
-          enabled: false   # manual routing (good for learning + control)
+      server:
+        webflux: # 👈 Required for Spring Boot 3.5+ to avoid deprecation issues
+          discovery:
+            locator:
+              enabled: true
+          routes:
+            # 1. Auth Service (Public - No Token Required)
+            - id: auth-service
+              uri: lb://AUTH-SERVICE
+              predicates:
+                - Path=/auth/**
+              # We do NOT use StripPrefix here so /auth/register reaches the controller
 
-      routes:
-        - id: auth-service
-          uri: lb://auth-service
-          predicates:
-            - Path=/auth/**
-          filters:
-            - StripPrefix=1
-
-        # 🔒 Future services (commented for now)
-
-        # - id: order-service
-        #   uri: lb://order-service
-        #   predicates:
-        #     - Path=/api/orders/**
-        #   filters:
-        #     - StripPrefix=2
-
-        # - id: user-service
-        #   uri: lb://user-service
-        #   predicates:
-        #     - Path=/api/users/**
-        #   filters:
-        #     - StripPrefix=2
-
-        # - id: wallet-service
-        #   uri: lb://wallet-service
-        #   predicates:
-        #     - Path=/api/wallet/**
-        #   filters:
-        #     - StripPrefix=2
+            # 2. Test Service (Protected - Requires JWT)
+            - id: test-service
+              uri: http://httpbin.org
+              predicates:
+                - Path=/test/**
+              filters:
+                - JwtAuthFilter
+                - StripPrefix=1
 
 server:
   port: 8000
@@ -47,8 +34,13 @@ eureka:
     service-url:
       defaultZone: http://localhost:8761/eureka/
 
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info
+# Ensure these match your Auth Service exactly
+jwt:
+  secret: my-super-secret-key-my-super-secret-key
+  expiration: 3600000
+
+# Optional: Helpful for debugging routing issues in terminal
+logging:
+  level:
+    org.springframework.cloud.gateway: TRACE
+    org.springframework.http.server.reactive: DEBUG

@@ -1,9 +1,9 @@
-package com.pizza.auth_service.config;
+package com.pizza.api_gateway.config;
+
 
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-
 import org.springframework.stereotype.Component;
 
 @Getter

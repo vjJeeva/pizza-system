@@ -2,6 +2,7 @@ package com.pizza.auth_service.security;
 
 import com.pizza.auth_service.entity.AuthUser;
 import com.pizza.auth_service.repository.AuthUserRepository;
+import jakarta.annotation.Nonnull;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,9 +24,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final AuthUserRepository repository;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain)
+    protected void doFilterInternal(@Nonnull  HttpServletRequest request,
+                                    @Nonnull HttpServletResponse response,
+                                    @Nonnull  FilterChain filterChain)
             throws ServletException, IOException {
 
         final String authHeader = request.getHeader("Authorization");

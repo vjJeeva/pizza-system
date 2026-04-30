@@ -61,7 +61,7 @@ public class JwtService {
                     .verifyWith(getSignKey())
                     .build()
                     .parseSignedClaims(token)
-                    .getBody();
+                    .getPayload();
         } catch (Exception e) {
             throw new RuntimeException("Invalid JWT token", e);
         }

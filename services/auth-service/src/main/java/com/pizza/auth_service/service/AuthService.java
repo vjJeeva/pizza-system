@@ -1,6 +1,5 @@
 package com.pizza.auth_service.service;
 
-
 import com.pizza.auth_service.dto.AuthResponse;
 import com.pizza.auth_service.dto.LoginRequest;
 import com.pizza.auth_service.dto.RegisterRequest;
@@ -13,6 +12,7 @@ import com.pizza.auth_service.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -23,50 +23,58 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
 
-    // to Register
+    /**
+     * Registers a new user.
+     */
+    @Transactional
+    public AuthResponse register(RegisterRequest request) {
 
-    public AuthResponse register(RegisterRequest request){
-
-        //to Check if email already exists
+        // 1. Check if email already exists
         repository.findByEmail(request.getEmail())
                 .ifPresent(user -> {
-                    throw new RuntimeException("Email already exists");
+                    throw new RuntimeException("Email already exists: " + request.getEmail());
                 });
-        AuthUser user=mapper.toEntity(request);
 
-        //enrich entity (business logic)
+        // 2. Map DTO to Entity
+        AuthUser user = mapper.toEntity(request);
+
+        // 3. Enrich entity with business logic
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(Role.USER);
         user.setStatus(UserStatus.ACTIVE);
 
-        repository.save(user);
-        // after saving entity generating token
+        // 4. Save to DB and capture the returned object with the generated UUID
+        AuthUser savedUser = repository.save(user);
 
-        String token = jwtService.generateToken(user.getId(), user.getEmail());
+        // 5. Generate token using the persistent entity data
+        String token = jwtService.generateToken(savedUser.getId(), savedUser.getEmail());
 
         return AuthResponse.builder()
                 .token(token)
-                .userId(user.getId().toString())
+                .userId(savedUser.getId().toString())
                 .build();
-
     }
 
-    //Login
-    public AuthResponse login(LoginRequest request){
-        AuthUser user=repository.findByEmail(request.getEmail())
+    /**
+     * Authenticates a user and returns a JWT.
+     */
+    public AuthResponse login(LoginRequest request) {
+        // 1. Find user by email
+        AuthUser user = repository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("Invalid credentials"));
 
-        //verify password
-        if(!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+        // 2. Verify password matches encoded version
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new RuntimeException("Invalid credentials");
         }
 
-        //check status
-        if(user.getStatus() != UserStatus.ACTIVE){
-            throw new RuntimeException("User is not active");
+        // 3. Ensure account is active
+        if (user.getStatus() != UserStatus.ACTIVE) {
+            throw new RuntimeException("Account is not active. Please contact support.");
         }
 
-        String token= jwtService.generateToken(user.getId(), user.getEmail());
+        // 4. Generate token
+        String token = jwtService.generateToken(user.getId(), user.getEmail());
 
         return AuthResponse.builder()
                 .token(token)
@@ -74,5 +82,3 @@ public class AuthService {
                 .build();
     }
 }
-
-
