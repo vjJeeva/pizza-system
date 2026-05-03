@@ -6,6 +6,7 @@ import com.pizza.auth_service.dto.RegisterRequest;
 import com.pizza.auth_service.entity.AuthUser;
 import com.pizza.auth_service.enums.Role;
 import com.pizza.auth_service.enums.UserStatus;
+import com.pizza.auth_service.event.AuthProducer;
 import com.pizza.auth_service.mapper.AuthMapper;
 import com.pizza.auth_service.repository.AuthUserRepository;
 import com.pizza.auth_service.security.JwtService;
@@ -13,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.pizza.auth_service.dto.UserRegistrationEvent;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +24,7 @@ public class AuthService {
     private final AuthMapper mapper;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final AuthProducer authProducer;
 
     /**
      * Registers a new user.
@@ -45,6 +48,19 @@ public class AuthService {
 
         // 4. Save to DB and capture the returned object with the generated UUID
         AuthUser savedUser = repository.save(user);
+
+        //-----------------------------------------------------------
+
+        //NEW KAFKA LOGIC
+        // fire the event so user-service can create a profile
+        UserRegistrationEvent event= UserRegistrationEvent.builder()
+                .id(savedUser.getId())
+                .email(savedUser.getEmail())
+                .build();
+
+        authProducer.sendRegistrationEvent(event);
+
+        //-----------------------------------------------------------
 
         // 5. Generate token using the persistent entity data
         String token = jwtService.generateToken(savedUser.getId(), savedUser.getEmail());
