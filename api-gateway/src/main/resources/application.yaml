@@ -25,6 +25,13 @@ spring:
               filters:
                 - JwtAuthFilter
                 - StripPrefix=1
+            # 3. Order Service (Protected - Requires JWT)
+            - id: order-service
+              uri: lb://ORDER-SERVICE
+              predicates:
+                - Path=/api/orders/**
+              filters:
+                - JwtAuthFilter
 
 server:
   port: 8000

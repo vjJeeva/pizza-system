@@ -1,7 +1,5 @@
 package com.pizza.order_service.dto;
 
-
-import com.pizza.order_service.enums.OrderStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,13 +9,9 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class OrderResponse {
-
+public class OrderPreparedEvent {
     private String orderId;
-
-    private String userId;
-
-    private  Double amount;
-
-    private OrderStatus status;
+    private String customerName;
+    private String deliveryAddress;
+    private String contactNumber;
 }

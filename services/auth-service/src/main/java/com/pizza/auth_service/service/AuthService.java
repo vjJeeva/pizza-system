@@ -71,25 +71,22 @@ public class AuthService {
                 .build();
     }
 
-    /**
-     * Authenticates a user and returns a JWT.
-     */
+
+     // Authenticates a user and returns a JWT.
+
     public AuthResponse login(LoginRequest request) {
-        // 1. Find user by email
+
         AuthUser user = repository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("Invalid credentials"));
 
-        // 2. Verify password matches encoded version
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new RuntimeException("Invalid credentials");
         }
 
-        // 3. Ensure account is active
         if (user.getStatus() != UserStatus.ACTIVE) {
             throw new RuntimeException("Account is not active. Please contact support.");
         }
 
-        // 4. Generate token
         String token = jwtService.generateToken(user.getId(), user.getEmail());
 
         return AuthResponse.builder()

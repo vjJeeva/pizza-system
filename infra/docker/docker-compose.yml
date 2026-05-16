@@ -36,5 +36,14 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
 
+
+# 4. Redis: The L1 Cache for Idempotency
+  redis:
+    image: redis:7.2-alpine
+    container_name: redis_cache
+    ports:
+      - "6379:6379"
+    restart: always
+
 volumes:
   mysql_data:
